@@ -1,0 +1,48 @@
+<style lang="stylus" scoped>
+.x-checker
+  display flex
+  flex-wrap wrap
+</style>
+
+<template lang="pug">
+  view(class='x-checker')
+    slot
+</template>
+
+<script>
+import wepy from 'wepy'
+
+export default class XChecker extends wepy.component {
+  props = {
+    active: {
+      type: [String, Number, Array, Object],
+      twoWay: true
+    },
+    options: [Array, Object],
+    type: {
+      type: String,
+      default: 'radio'
+    },
+    max: Number,
+    radioRequired: Boolean
+  }
+
+  // computed = {
+  //   activeIndex() {
+
+  //   }
+  // }
+
+  methods = {
+    getProps() {
+      let { active, options, type, max, radioRequired } = this
+      return { active, options, type, max, radioRequired }
+    },
+    setValue(args) {
+      this.$emit('change', { value: this.active = args[0], index: args[1] })
+    }
+  }
+
+  events = {}
+}
+</script>

@@ -1,0 +1,48 @@
+<style lang="stylus" scoped>
+@import '../styles/_variables'
+.x-cell
+  display flex
+  align-items center
+  justify-content space-between
+  height 104rpx
+  padding 0 25rpx
+  &:not(:nth-last-of-type(1))
+    border-bottom .5px solid border-line-color
+  .x-cell__right
+    display flex
+    align-items center
+    justify-content space-between
+
+</style>
+
+<template lang="pug">
+  view(class='x-cell', @tap="tapHandler")
+    view(class="x-cell__left") {{ label }}
+    view(class="x-cell__right")
+      text {{ value }}
+      slot
+</template>
+
+<script>
+import wepy from 'wepy'
+
+export default class XCell extends wepy.component {
+  props = {
+    label: {
+      type: String,
+      default: ''
+    },
+    value: {
+      twoWay: true,
+      type: String,
+      default: ''
+    }
+  }
+
+  methods = {
+    tapHandler() {
+      this.$emit('tap')
+    }
+  }
+}
+</script>

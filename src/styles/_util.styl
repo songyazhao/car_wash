@@ -1,0 +1,21 @@
+/**
+* Function
+*/
+
+/* 文字单行 */
+text-ellipsis()
+  overflow hidden
+  text-overflow ellipsis
+  white-space nowrap
+/* 绘制圆点 */
+solid-dot(color = black, w = 8px, h = w)
+  display flex
+  align-items center
+  &:before
+    content ''
+    display inline-block
+    width w
+    height h
+    margin-right 6px
+    border-radius 50%
+    background-color color

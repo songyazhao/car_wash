@@ -1,0 +1,18 @@
+@import './_variables'
+
+image
+  display block
+button[type='submit']
+  color white
+  background-color color-yellow
+button[type='submit'].button-hover
+  background-color lighten(color-yellow, 20%)
+button[type='cancel']
+  font-size layout-font-size
+  padding 15rpx 0
+  border-radius 0
+  background-color white
+  &:after
+    border none
+button[type='cancel'].button-hover
+  background-color darken(white, 5%)

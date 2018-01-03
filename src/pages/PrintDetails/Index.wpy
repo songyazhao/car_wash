@@ -1,0 +1,310 @@
+<style lang="stylus">
+@import '../../styles/_variables'
+@import '../../styles/_util'
+cell-odd-bg-color = #F7F7F7
+cell-even-bg-color = #FCFCFC
+cell-border-color = #D8D8D8
+.c_59{
+    color:#595959!important;
+}
+.c_A1{
+    color:#A1A1A1!important;
+}
+.c_B7{
+    color:#B7B7B7!important;
+}
+.c_FB0{
+    color:#FB0!important;
+}
+.d_b{
+  display: block!important;
+}
+.nm{
+  white-space: normal!important;
+}
+
+.container
+  margin: 0
+  padding: 0
+  font-size 24rpx
+  background: #ffc82f url(http://meili.caryu.com/Public/static/packaged-assets/Insurance/img/zebra-9fad7117.png) no-repeat 12% -1% local;
+  background-size: 80rpx 540rpx
+.bar
+  position relative
+  &::before,
+  &::after
+    content: ''
+    position: absolute
+    z-index auto
+    top: -18rpx
+  &::before
+    left 1%
+    width 98%
+    background-color: #823c00
+    height: 28rpx
+    border-radius: 16rpx
+  &::after
+    margin-top: 8rpx
+    left 2%
+    width 96%
+    background-color: #603200
+    height: 12rpx
+    border-radius: 6rpx
+
+.car_info, .h5, .card
+  margin-left 26rpx
+  margin-right 26rpx
+.h5, .card
+  padding-left 24rpx
+  padding-right 24rpx
+.h5
+  display flex
+  align-items center
+  justify-content space-between
+  font-size 32rpx
+  background-color white
+  line-height 92rpx
+  position relative
+  &:not(:nth-of-type(1)):before
+    content ''
+    display block
+    width 95%
+    height 2rpx
+    top 0
+    left 2.5%
+    border-top 2rpx dashed #ccc
+    position absolute
+  text
+    color color-yellow
+    solid-dot(color-yellow)
+  button
+    margin 0
+    padding 0
+    font-size 22rpx
+    background-color color-yellow
+    color white
+    border-color transparent
+    background-color color-yellow
+    width 82rpx
+    height h = 42rpx
+    line-height h
+.card
+  background-color white
+  padding 0 24rpx 30rpx
+  &:nth-last-of-type(1)
+    margin-bottom 56rpx
+  .strong
+    font-size 28rpx
+  & > view
+    display flex
+    flex-direction column
+    justify-content center
+    .list
+      display flex
+      align-items center
+      padding 0 30rpx
+      min-height 50rpx
+  &:not(.car_insurance) .up_container,
+  &:not(.car_insurance) .down_container
+    border-left 2rpx solid cell-border-color
+    border-right 2rpx solid cell-border-color
+    border-bottom 2rpx solid cell-border-color
+    &.up_container
+      border-top 2rpx solid cell-border-color
+      background-color cell-even-bg-color
+    &.down_container
+      background-color cell-odd-bg-color
+    .nm
+      padding-top pt = 10rpx
+      padding-bottom pt
+      .fact
+        padding-top pt
+  &.car_insurance
+    .up_container .list
+      display flex
+      justify-content center
+      align-items: center
+      white-space: nowrap
+      border-left 2rpx solid cell-border-color
+      border-top 2rpx solid cell-border-color
+      border-right 2rpx solid cell-border-color
+      &:last-child
+        border-bottom 2rpx solid cell-border-color
+      &:nth-child(odd)
+        background-color cell-odd-bg-color
+      &:nth-child(even)
+        background-color cell-even-bg-color
+      & > view
+        &:nth-child(2)
+          width: 53px
+          height: 16px
+          margin-left: 10px
+        &:nth-child(3)
+          flex: 1
+          text-align: right
+        text:first-child
+          color #B7B7B7
+        image
+          width 100%
+          height 100%
+    .down_container
+      flex-direction row
+      justify-content space-around
+      .list
+        flex-direction column
+        margin-top 0
+        view
+          margin-right 0
+          margin-top 10rpx
+  &.car_violation
+    .up_container .list
+      &:not(:first-child)
+        margin-top 10rpx
+      &:first-child
+        margin-top 4rpx
+      &:last-child
+        margin-bottom 12rpx
+  &.car_used
+    .up_container .list
+      text-ellipsis()
+</style>
+
+<template lang="pug">
+  scroll-view(class='container', scroll-y, wx:if="{{ isLoad }}")
+    CarInfo(:license_number.sync='license_number')
+    view(class='bar', style="margin-top: {{ barMarginTop }}rpx")
+    CarInsurance(:WebViewConfig.sync='_CarInsuranceConfig')
+    CarViolation(:WebViewConfig.sync='_CarViolationConfig')
+    CarUsed(:WebViewConfig.sync='_CarUsedConfig')
+    CarLoan(:WebViewConfig.sync='_CarLoanConfig')
+</template>
+
+<script>
+import wepy from 'wepy'
+import CommonMixin from '@/mixins/common-mixin.js'
+import mixin from '@/mixins/print-details.js'
+import CarInfo from './modules/car-info'
+import CarInsurance from './modules/car-insurance'
+import CarViolation from './modules/car-violation'
+import CarUsed from './modules/car-used'
+import CarLoan from './modules/car-loan'
+import axios from 'axios'
+import { ajax } from '@/tools'
+import { values } from 'lodash'
+
+export default class PrintDetails extends wepy.page {
+  components = { CarInfo, CarInsurance, CarViolation, CarUsed, CarLoan }
+
+  mixins = [CommonMixin, mixin]
+
+  data = {
+    barMarginTop: 0,
+    isLoad: false,
+    license_number: '',
+    WebViewConfig: {}
+  }
+
+  computed = {
+    _CarInsuranceConfig() {
+      return this.WebViewConfig.carInsurance
+    },
+    _CarViolationConfig() {
+      return this.WebViewConfig.carViolation
+    },
+    _CarUsedConfig() {
+      return this.WebViewConfig.sencondHand
+    },
+    _CarLoanConfig() {
+      return this.WebViewConfig.carGuaranty
+    }
+  }
+
+  updata(insurance, violation, used) {
+    let self = this
+    let { CarInfo, CarUsed, CarLoan, CarInsurance, CarViolation } = this.$com
+    return {
+      insurance() {
+        /* -------------------车险 & 车型信息---------------- */
+        insurance = insurance.data
+        let data = insurance.data
+        if (insurance.code === 0) {
+          CarUsed.car_model = CarInfo.car_model = data.model
+          CarInfo.carInfo = data
+          CarInfo.lastRenewal = data.lastRenewal
+          CarInfo.lastInsuranceCompany = data.lastInsuranceCompany
+          if (CarInsurance.isShowInsurance = data.insurancedata && data.insurancedata.length > 0) {
+            CarInsurance.carInsurance = data.insurancedata.map(item => {
+              item.amountF = CarInsurance.insureAmount(item.amount)
+              return item
+            })
+          }
+        } else {
+          self.barMarginTop = 45
+        }
+      },
+      violation() {
+        /* -------------------车违章---------------- */
+        violation = violation.data
+        let data = violation.data
+        if (violation.code === 0) {
+          if (CarViolation.isShowViolation = data.newest)
+            CarViolation.carViolation = data
+        }
+      },
+      used() {
+        /* -------------------二手车 & 车抵贷---------------- */
+        used = used.data
+        let data = used.data
+        if (used.code === 0) {
+          if (CarLoan.isShowLoan = CarUsed.isShowUsed = data.max > 0)
+            CarLoan.carLoan = CarUsed.carUsed = data
+        }
+      }
+    }
+  }
+
+  getCarInsurance() {
+    return ajax.post('/Xiaochengxu/CarInfo/getCarInfo', { license_number: this.license_number })
+  }
+
+  getCarViolation() {
+    return ajax.post('/Xiaochengxu/CarInfo/getCarViolation', { license_number: this.license_number })
+  }
+
+  getUsed() {
+    return ajax.post('/Xiaochengxu/CarInfo/getEvalPrice', { license_number: this.license_number })
+  }
+
+  async getWebViewConfig({ orderid, license_number }) {
+    let WebViewConfig = await ajax.post('/Xiaochengxu/Config/getButtonUrl', { orderid, license_number })
+    WebViewConfig = WebViewConfig.data
+
+    if (WebViewConfig.code === 0) {
+      this.WebViewConfig = WebViewConfig.data
+      this.$apply()
+    }
+  }
+
+  onLoad(e) {
+    if (e.license_number) {
+      this.license_number = e.license_number
+    }
+
+    this.getWebViewConfig(e)
+
+    axios.all([this.getCarInsurance(), this.getCarViolation(), this.getUsed()])
+      .then(axios.spread((insurance, violation, used) => {
+        const components = values(this.$com).concat([this])
+        const execs = values(this.updata(insurance, violation, used))
+
+        this.isLoad = true
+        execs.forEach(exec => exec())
+        components.forEach(component => component.$apply())
+        wepy.$instance.delayExecute().then(r => wepy.hideLoading())
+      }))
+      .catch(err => {
+        console.info(err)
+      })
+  }
+}
+</script>

@@ -1,0 +1,19 @@
+<style lang="stylus" scoped>
+.x-header
+  width 692rpx
+  image
+    width 100%
+    height 400rpx
+</style>
+
+<template lang="pug">
+  view(class='x-header')
+    image(src='../assets/CaryuKX-banner@2x.png')
+    slot
+</template>
+
+<script>
+import wepy from 'wepy'
+
+export default class XHeader extends wepy.component { }
+</script>

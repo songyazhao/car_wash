@@ -1,0 +1,159 @@
+ @layout-text-color: #383838;
+ @layout-text-color2: #595959;
+ @input-placeholder-color: #B3B3B3;
+
+html, body, #app {
+  height: 100%;
+}
+body{
+  color: @layout-text-color2;
+  background-color: #F5F5F5;
+  font-size: 13px;
+}
+a{color: @layout-text-color}
+li{list-style: none}
+.c_38{color: #383838!important}
+.c_a1{color: #a1a1a1!important}
+.c_d4{color: #d4d4d4!important}
+.c_db{color: #dbdbdb!important}
+.c_e5{color: #e5e5e5!important}
+.c_59{color: #595959!important}
+.c_99{color: #999999!important}
+.c_yellow{color: #FFBB00!important}
+
+#app{
+  overflow: hidden;
+  #index, #about_us {
+    height: 100%;
+    overflow-y: auto;
+  }
+}
+.banner {
+	display: block;
+  width: 100%;
+}
+img{
+  display: block;
+  .arrow{
+    width: 38rpx;
+    height: 38rpx;
+  }
+}
+
+.vux-header {
+  background-color: white!important;
+  .vux-header-back,
+  .vux-header-title {
+    color: @layout-text-color2!important;
+  }
+  .left-arrow::before {
+    border-color: @layout-text-color2!important;
+  }
+}
+.weui-cell, .weui-cells{
+	font-size: 13px!important;
+}
+.weui-cell__hd,
+.vux-datetime > div:nth-child(1){
+	color: #383838!important;
+}
+.weui-cell__hd + div input::-webkit-input-placeholder,
+.vux-popup-picker-placeholder{
+	color: @input-placeholder-color!important;
+}
+.panel_1 .vux-datetime-value,
+.panel_2 .vux-datetime-value{
+  color: @input-placeholder-color;
+  &.have-value{
+    color: @layout-text-color
+  }
+}
+.panel_2 .weui-cells__title{
+  text-align: center;
+}
+.weui-cell{
+  padding: 15px!important;
+}
+.carbrand_title .weui-cells__title{
+  margin: 0;
+  line-height: 20px;
+  color: black;
+}
+#app {
+  .page__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .page__footer{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    button{
+      width: 100%;
+      height: 55px;
+      line-height: 43px;
+      background-color: #FB0;
+      font-size: 15px;
+      color: white;
+      border: none;
+      &[disabled="disabled"]{
+        background-color: rgba(0, 0, 0, 0.2);
+      }
+    }
+  }
+  .weui-btn{
+    border-radius: 0;
+    &::after{
+      display: none;
+    }
+  }
+}
+.vux-no-group-title::before,
+.vux-no-group-title::after{
+  border: none!important
+}
+#loading .weui-toast{
+  top: 50%!important;
+  width: 9em!important;
+  margin-top: -55px;
+}
+
+
+.arrow{
+	position: relative;
+	padding: 0 6.5px;
+}
+.arrow:after{
+	content: " ";
+	display: inline-block;
+	height: 12px;
+	width: 12px;
+	border-width: 2px 2px 0 0;
+	border-color: #868686;
+	border-style: solid;
+	-webkit-transform: matrix(0.71, 0.71, -0.71, 0.71, 0, 0);
+	transform: matrix(0.71, 0.71, -0.71, 0.71, 0, 0);
+	position: relative;
+	top: -2px;
+	position: absolute;
+	top: 50%;
+	margin-top: -6px;
+	right: 2px;
+}
+.mask{
+  background: rgba(0, 0, 0, .3);;
+  z-index: 10;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+}
+.fadeInRight, .fadeOutRight, .fadeOutLeft{
+  animation-duration: .3s;
+}
+.bounceInUp, .bounceOutDown{
+  animation-duration: .55s;
+}

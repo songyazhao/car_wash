@@ -1,0 +1,57 @@
+<style lang="stylus">
+.x-popup
+  position fixed
+  left 0
+  right 0
+  bottom 0
+  z-index 1001
+  background-color transparent
+  .x-popup__title
+    font-size 30rpx
+    line-height 30rpx
+    padding 40rpx 30rpx
+  .x-popup__content
+    margin 0 75rpx
+</style>
+
+<template lang="pug">
+  view(class='x-popup', style='background: {{ background }}', wx:if='{{ visible }}')
+    view(class='x-popup__title') {{ title }}
+    view(class='x-popup__content')
+      slot(name='content')
+    button(type='cancel', @tap='closePopupTap') 取消
+  XMask(:show.sync='visible', @tap.user="closePopupTap")
+</template>
+
+<script>
+import wepy from 'wepy'
+import XMask from './x-mask'
+
+export default class XPopup extends wepy.component {
+  components = {
+    XMask
+  }
+
+  props = {
+    visible: {
+      type: Boolean,
+      defult: false,
+      twoWay: true
+    },
+    title: {
+      type: String,
+      default: ''
+    },
+    background: {
+      type: String,
+      default: 'white'
+    }
+  }
+
+  methods = {
+    closePopupTap() {
+      this.visible = false
+    }
+  }
+}
+</script>

@@ -1,0 +1,88 @@
+<style lang="stylus">
+
+</style>
+
+<template>
+  <view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import CommonMixin from '@/mixins/common-mixin.js'
+
+export default class ToPay extends wepy.page {
+  mixins = [CommonMixin]
+
+  /**
+   * @param {Object} payParams 请求微信支付要携带的参数
+   * @param {String} jumpURL 支付成功后要跳转的页面, 可选
+   */
+  requestPayment({ payParams, jumpURL }) {
+    let Payment = wepy.requestPayment(payParams)
+
+    return Payment
+      .then(res => {
+        console.info('->->Log :: 支付成功的回调返回参数:', res)
+
+        if (jumpURL) {
+          wepy.$instance
+            .delayExecute(800)
+            .then(r => wepy.reLaunch({
+              url: `/pages/WebView?URL=${jumpURL}`
+            }))
+            .catch(err => {
+              console.warn(`跳转URL:${jumpURL}失败`, err)
+            })
+        } else {
+          const duration = 2500
+          wepy.showToast({ title: '支付成功', icon: 'success', duration })
+          wepy.$instance
+            .delayExecute(duration)
+            .then(r => wepy.navigateBack({
+              delta: 100
+            }))
+        }
+      })
+      .catch(res => { // 支付失败的处理逻辑
+        console.warn('->->Warn :: 支付失败的回调返回参数:', res)
+        if (res.errMsg !== 'requestPayment:fail cancel' && res.err_desc) {
+          return wepy.showModal({
+            title: '提示',
+            cancelText: '取消支付',
+            confirmText: '重新支付',
+            content: res.err_desc
+          }).then(res => {
+            if (res.confirm) { // 用户点击确定
+              this.requestPayment({ payParams, jumpURL }) // 重新调起支付
+            } else if (res.cancel) { // 用户点击取消
+              console.info('->->Log :: 用户取消支付')
+              wepy.navigateBack()
+            }
+          }).catch(title => wepy.showToast({ title, image: '' }))
+        }
+        console.info('->->Log :: 用户取消支付')
+        wepy.navigateBack()
+      })
+  }
+
+  onLoad(e) {
+    wepy.setNavigationBarTitle({ title: e.title || '确认支付' })
+    if (!e.payParams) {
+      wepy.showModal({
+        title: '提示',
+        content: `缺少参数: payParams`
+      })
+      return false
+    }
+
+    try {
+      e.payParams = JSON.parse(decodeURIComponent(e.payParams))
+      e.payParams.timeStamp = String(e.payParams.timeStamp)
+      this.requestPayment(e)
+    } catch (error) {
+      console.warn('参数(payParams)解析失败', error)
+    }
+  }
+}
+</script>

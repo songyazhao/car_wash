@@ -1,0 +1,343 @@
+<style lang="stylus">
+@import '../../styles/_variables'
+.container
+  overflow hidden
+.below__box
+  w = 102rpx
+  position relative
+  padding-top w - (w/3)
+  .unknown .x-cell__left
+    color deault-placeholder-color
+  .scan-button-1
+    width w
+    position absolute
+    height w
+    top -(w/3)
+    left 50%
+    margin-left -(w/2)
+    border-radius 50%
+    box-shadow 0 0 0 rgba(0, 0, 0, .35)
+  .scan-button-2
+    width w = 181rpx
+    height w
+    margin 26rpx auto 31rpx
+  .arrow
+    width 16rpx
+    height 26rpx
+    margin-left 11rpx
+  .sum
+    color color-yellow
+  button
+    margin 95rpx 20rpx 51rpx
+.coupon-item
+  margin-bottom 39rpx
+</style>
+<template lang="pug">
+  view(class='container')
+    XHeader(class='above__box')
+    view(class='below__box')
+      image(class='scan-button-1', src='../../assets/Caryu-sys@2x.png', @tap="scanQrcode('yes')")
+      XCell-1(label='洗车费用', :value.sync='_costMoney', :class="{ unknown: unknown }")
+      XCell-2(label='洗车时间', :value.sync='_costTime', :class="{ unknown: unknown }")
+      XCell-3(label='优惠券', :value.sync='_currentRedPacket', :class="{ unknown: unknown }", @tap.user='showCouponTap')
+        image(class='arrow', src="../../assets/Caryu-yhj-gd-icon@2x.png", wx:if='{{ !unknown && redPacket.length > 0 }}')
+      XCell-4(value='合计金额：')
+        text(class='sum') {{ _sum }}
+      image(
+        class='scan-button-2',
+        src='../../assets/Caryu-sys-icon@2x.png',
+        @tap='scanQrcode',
+        wx:if='{{ unknown }}') 确定支付
+      button(type='submit', @tap='confirmPayHandler', wx:else) 确定支付
+
+  XPopup(:visible.sync='isShowCoupon', title='选择优惠券', background='#f5f5f5')
+    scroll-view(slot='content', scroll-y, style='min-height: 440rpx; max-height: 520rpx')
+      repeat(for='{{ redPacket }}', key='index', index='index', item='item')
+        XCoupon(
+          class='coupon-item',
+          :value.sync='item',
+          :desc.sync='item.desc',
+          :newUser.sync='item.newUser',
+          @select.user='selectorHandler')
+</template>
+
+<script>
+import wepy from 'wepy'
+import XHeader from '@/components/x-header'
+import XPopup from '@/components/x-popup'
+import XCoupon from '@/components/x-coupon'
+import XCell from '@/components/x-cell'
+import CommonMixin from '@/mixins/common-mixin'
+import { ajax, numberComma, queryParse, queryString } from '@/tools'
+
+export default class CarWash__ConfirmPay extends wepy.page {
+  config = {
+    navigationBarTitleText: '驾遇快洗'
+  }
+  components = {
+    XHeader,
+    XPopup,
+    XCoupon,
+    'XCell-1': XCell,
+    'XCell-2': XCell,
+    'XCell-3': XCell,
+    'XCell-4': XCell
+  }
+
+  mixins = [CommonMixin]
+
+  data = {
+    DeviceSerial: '170005', // 设备序列号
+    unknown: false, // 是否待支付状态
+    isShowCoupon: false, // 是否显示优惠券弹框
+    costMoney: 0, // 洗车费用
+    costTime: 0, // 洗车时间(秒)
+    currentRedPacket: { // 当前选中的优惠券
+      id: '',
+      money: 0
+    },
+    redPacket: [ // 优惠券列表示例数据
+      {
+        id: '4',
+        name: '洗车优惠券',
+        type: 'new_washer',
+        money: '3.00',
+        status: '0',
+        remark: '新用户',
+        over_time: '2017-12-03 15:08:43',
+        add_time: '2017-11-30 15:08:43',
+        use_time: '0000-00-00'
+      }
+    ]
+  }
+
+  computed = {
+    _costMoney() {
+      if (this.unknown)
+        return '扫码显示'
+      return `¥ ${numberComma(this.costMoney)}`
+    },
+    _costTime() {
+      if (this.unknown)
+        return '扫码显示'
+      return `${Math.round(this.costTime / 60)}分钟`
+    },
+    _currentRedPacket() {
+      const name = this.currentRedPacket.name
+      const money = this.currentRedPacket.money
+      if (this.unknown)
+        return ''
+      else if (money === 0)
+        return '暂无优惠券可用'
+      return name
+    },
+    _sum() {
+      let sum = this.unknown ? 0 : this.costMoney - this.currentRedPacket.money
+      sum = parseFloat(numberComma(sum)).toFixed(2)
+      return `¥ ${sum}`
+    }
+  }
+
+  methods = {
+    showCouponTap() {
+      if (!this.unknown && this.redPacket.length > 0)
+        this.isShowCoupon = true
+    },
+    selectorHandler(value, desc) {
+      if (value.can_use === -1) {
+        wepy.showModal({
+          title: '提示',
+          showCancel: false,
+          content: '该优惠券不在使用时间范围之内'
+        })
+      } else if (value.can_use === -2) {
+        wepy.showModal({
+          title: '提示',
+          showCancel: false,
+          content: '优惠券已失效'
+        })
+      } else {
+        this.isShowCoupon = false
+        this.currentRedPacket = value
+      }
+    },
+    scanQrcode(flag) {
+      if (flag === 'yes' && this.unknown) return false
+
+      wepy.scanCode({ onlyFromCamera: true }) // 只允许从相机扫码
+        .then(res => {
+          console.log('->->Log :: 扫码成功返回的参数为: ', res)
+
+          let params = res.path || res.result
+          params = params.split('?')[1]
+          if (!res.path) {
+            params = decodeURIComponent(params).split('?')[1]
+            params = params.replace('#wechat-redirect', '')
+          }
+          params = queryString.parse(params)
+          if (params.DeviceSerial) {
+            this.DeviceSerial = params.DeviceSerial
+            this.unknown = false
+            this.getWashCarInfo()
+          } else {
+            wepy.showModal({
+              title: '提示',
+              showCancel: false,
+              content: '未获取到设备号, 请重新扫码。'
+            })
+          }
+        })
+        .catch(err => console.warn('->->Error :: 扫码失败: ', err))
+    },
+    confirmPayHandler() {
+      this.pay(this.DeviceSerial, this.currentRedPacket.id)
+    }
+  }
+
+  pay(DeviceSerial, redPacketId) {
+    let params = {
+      openid: wepy.$instance.globalData.openId,
+      DeviceSerial,
+      redPacketId
+    }
+    ajax.post('/Xiaochengxu/WashCar/toPay', params)
+      .then(res => { // 获得微信支付的参数,包括签名
+        res = res.data
+        let data = res.data.data
+        if (typeof data.timeStamp !== 'string')
+          data.timeStamp = String(data.timeStamp)
+        if (res.code === 0) {
+          wepy.$instance.globalData.orderId = data.orderId
+          return data
+        }
+      })
+      .then(data => { // 校验支付金额与后台是否一致
+        ajax.interceptors.response.use(response => {
+          response.data.verify_data = data
+          return response
+        })
+        return ajax.post('/Xiaochengxu/WashCar/checkOrderStatus', { orderid: data.orderId })
+      })
+      .then(res => { // 调起支付
+        res = res.data
+        if (res.code === 0) {
+          wepy.$instance.delayExecute().then(r => {
+            wepy.hideLoading()
+            this.requestPayment(res, DeviceSerial, redPacketId)
+          })
+        }
+      })
+      .catch(err => { // 校验支付失败
+        console.warn('->->Warn :: 支付参数检验失败:', err)
+      })
+  }
+
+  requestPayment({ verify_data }, DeviceSerial, redPacketId) {
+    let Payment = wepy.requestPayment(verify_data)
+
+    return Payment
+      .then(res => {
+        console.info('->->Log :: 支付成功的回调返回参数:', res)
+        wepy.redirectTo({
+          url: queryParse(
+            '/pages/CarWash/Valuation',
+            { costTime: this.costTime, DeviceSerial: this.DeviceSerial }
+          )
+        })
+      })
+      .catch(res => { // 支付失败的处理逻辑
+        console.warn('->->Warn :: 支付失败的回调返回参数:', res)
+        if (res.errMsg !== 'requestPayment:fail cancel' && res.err_desc) {
+          return wepy.showModal({
+            title: '提示',
+            cancelText: '取消支付',
+            confirmText: '重新支付',
+            content: res.err_desc
+          }).then(res => {
+            if (res.confirm) // 用户点击确定
+              this.pay(DeviceSerial, redPacketId)
+            else if (res.cancel) // 用户点击取消
+              console.info('->->Log :: 用户取消支付')
+          }).catch(title => wepy.showToast({ title, image: '' }))
+        }
+        console.info('->->Log :: 用户取消支付')
+      })
+  }
+
+  async getWashCarInfo() {
+    let openid = await wepy.$instance.getOpenId()
+    let params = { openid, DeviceSerial: this.DeviceSerial }
+
+    ajax.post('/Xiaochengxu/WashCar/toWash', params)
+      .then(res => {
+        res = res.data
+        let data = res.data
+        if (res.code === 0) {
+          this.costMoney = data.cost_money
+          this.costTime = data.cost_time
+          this.redPacket = data.redPacket.map(item => {
+            item.newUser = item.type === 'new_washer'
+            item.money = parseFloat(item.money)
+            item.desc = {
+              title: item.name,
+              can_use: item.can_use,
+              start_time: item.start_time,
+              over_time: item.over_time,
+              condition: item.remark
+            }
+            return item
+          })
+
+          let redPacket = this.redPacket.filter(item => item.can_use > 0)
+          redPacket.forEach(item => {
+            if (this.currentRedPacket.money < item.money)
+              this.currentRedPacket = item
+          })
+
+          this.$apply()
+        }
+        wepy.$instance.delayExecute().then(r => wepy.hideLoading())
+      })
+  }
+
+  async getOrderStatus(cb) {
+    const openid = await wepy.$instance.getOpenId()
+
+    ajax.post('/Xiaochengxu/WashCar/getOrderStatus', { openid })
+      .then(res => {
+        res = res.data
+        let data = res.data
+        if (res.code === 0 &&
+          data.washing === 0 &&
+          data.time_left > 5 &&
+          data.feedBack === '') { // 正在洗车进行中的订单 排除掉剩余5s的订单和已提交故障的订单
+          wepy.redirectTo({
+            url: queryParse(
+              '/pages/CarWash/Valuation',
+              {
+                costTime: data.time_left,
+                DeviceSerial: data.device,
+                orderId: wepy.$instance.globalData.orderId = data.order_id
+              }
+            )
+          })
+        } else {
+          wepy.$instance.delayExecute().then(r => wepy.hideLoading())
+          cb && cb()
+        }
+      })
+  }
+
+  onLoad(e) {
+    this.getOrderStatus(() => {
+      if (e.DeviceSerial) {
+        this.DeviceSerial = e.DeviceSerial
+        this.getWashCarInfo()
+      } else {
+        this.unknown = true
+      }
+      this.$apply()
+    })
+  }
+}
+</script>

@@ -1,0 +1,68 @@
+<style lang="stylus">
+// .card.car_loan
+  // .list view
+  //   flex: 1
+  //   display flex
+  //   align-items center
+  //   .strong
+  //     line-height 0
+</style>
+
+<template>
+  <block wx:if="{{ isShowLoan }}">
+    <view class="h5">
+      <text>汽车抵押贷款</text>
+      <button @tap="goToPage('carGuaranty')" wx:if="{{ WebViewConfig.is_show === 1 }}">办理</button>
+    </view>
+    <view class="card car_used">
+      <view class="up_container">
+        <view class="list">
+          <view>
+            <text>凭您的爱车，预计可获得</text>
+            <text class="strong c_FB0">
+              {{ _price }}
+            </text>
+            <text>的车辆抵押贷款额度。</text>
+          </view>
+        </view>
+        <block wx:if="{{ city_id == 128 }}">
+          <view class="list">
+            <view>驾遇合作伙伴久鼎车贷 押手续不押车。</view>
+          </view>
+          <view class="list">
+            <view>贷款一：等额本息9厘。110%放款。</view>
+          </view>
+          <view class="list">
+            <view>贷款二：先息后本1.6。满成放款。</view>
+          </view>
+        </block>
+      </view>
+    </view>
+  </block>
+</template>
+
+<script>
+import wepy from 'wepy'
+import mixin from '@/mixins/print-details.js'
+import { numberComma } from '@/tools'
+
+export default class PrintDetails__CarUsed extends wepy.component {
+  mixins = [mixin]
+
+  props = ['WebViewConfig']
+
+  computed = {
+    _price() {
+      if (this.isShowLoan && this.carLoan)
+        return this.f(numberComma(Math.round(this.carLoan.max * 0.9)))
+      return ''
+    }
+  }
+
+  f(s) {
+    s = s.split(',')
+    s[s.length - 1] = '000'
+    return s.join(',')
+  }
+}
+</script>

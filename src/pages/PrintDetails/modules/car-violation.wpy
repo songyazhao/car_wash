@@ -1,0 +1,76 @@
+<style lang="stylus">
+.card.car_violation .nm
+  position: relative
+  & > view
+    word-break: break-all
+    // width: calc(100% - 5em)
+    min-width: 18em
+    &.fact
+      position: absolute
+      top: 0
+      left: 5em
+    &.perch
+      visibility: hidden
+      margin-top: calc(-1em - 8px)
+</style>
+
+<template>
+  <block wx:if="{{ isShowViolation }}">
+    <view class="h5">
+      <text>违章</text>
+      <button @tap="goToPage('carViolation')" wx:if="{{ WebViewConfig.is_show === 1 }}">办理</button>
+    </view>
+
+    <view class="card car_violation">
+      <view class="up_container">
+        <view class"list">
+          <view>最近违章时间：{{ _Time }}</view>
+        </view>
+        <view class="list">
+          <view class="nm">
+            违章信息：
+            <view class="fact">{{ carViolation.newest.Reason }}</view>
+            <view class="perch">{{ carViolation.newest.Reason }}</view>
+          </view>
+        </view>
+        <view class="list">
+          <view style="margin-top: 25rpx">
+            罚款{{ carViolation.newest.count }}元 扣{{ carViolation.newest.Degree }}分 {{ carViolation.newest.status==0
+            ? '未处理' : '已处理' }}
+          </view>
+        </view>
+      </view>
+      <view class="down_container">
+        <view class="list d_b nm">
+          <view>
+            {{ _addTime }}至今，共违章<text class="c_FB0">{{ carViolation.total_time }}</text>次，共扣分<span class="c_FB0">{{ carViolation.total_degree }}</text>次，共罚款<text class="c_FB0">{{ carViolation.total_money }}</text> 元。
+          </view>
+        </view>
+      </view>
+    </view>
+
+  </block>
+</template>
+
+<script>
+import wepy from 'wepy'
+import mixin from '@/mixins/print-details.js'
+
+export default class PrintDetails__CarViolation extends wepy.component {
+  mixins = [mixin]
+
+  props = ['WebViewConfig']
+
+  computed = {
+    _Time() {
+      let temp = this.carViolation
+      if (temp && temp.newest && temp.newest.Time)
+        return this.formatTime(temp.newest.Time)
+      return ''
+    },
+    _addTime() {
+      return this.formatTime(new Date().toLocaleDateString(), true)
+    }
+  }
+}
+</script>

@@ -1,0 +1,80 @@
+<style lang="stylus">
+@import './styles/reset.styl'
+@import './styles/layout.styl'
+</style>
+
+<script>
+import wepy from 'wepy'
+import 'wepy-async-function'
+import { ajax } from '@/tools'
+
+const appId = require('@/app_config.js').appId
+
+export default class extends wepy.app {
+  config = {
+    pages: [
+      'pages/CarWash/Index', // 洗车->支付
+      'pages/CarWash/Valuation', // 洗车->剩余洗车时间
+      'pages/CarWash/FaultSubmit', // 洗车->故障提交
+      'pages/PrintDetails/Index', // 电子打印单
+      'pages/WebView', // WebView 容器
+      'pages/ToPay' // 通用支付页
+    ],
+    window: {
+      backgroundTextStyle: 'light',
+      navigationBarBackgroundColor: '#fff',
+      navigationBarTitleText: '驾遇快洗',
+      navigationBarTextStyle: 'black'
+    }
+  }
+
+  globalData = {
+    code: null,
+    userInfo: null,
+    appId,
+    openId: null,
+    orderId: null
+  }
+
+  constructor() {
+    super()
+    this.use('requestfix')
+    this.use('promisify')
+  }
+
+  onLaunch() {
+    this.getUserInfo()
+    this.getOpenId()
+  }
+
+  delayExecute(delaytime = 300) { // 延迟执行某段代码
+    return new Promise(resolve => setTimeout(() => resolve(), delaytime))
+  }
+
+  async getCode(cb) {
+    if (this.globalData.code)
+      return this.globalData.code
+
+    cb && cb()
+    let login = await wepy.login()
+    return this.globalData.code = login.code
+  }
+
+  async getUserInfo() {
+    if (this.globalData.userInfo)
+      return this.globalData.userInfo
+
+    await this.getCode()
+    return this.globalData.userInfo = await wepy.getUserInfo()
+  }
+
+  async getOpenId() {
+    if (this.globalData.openId)
+      return this.globalData.openId
+
+    let code = await this.getCode()
+    let result = await ajax.post('/Xiaochengxu/WeChat/getOpenId', { code })
+    return this.globalData.openId = result.data.data.openid
+  }
+}
+</script>

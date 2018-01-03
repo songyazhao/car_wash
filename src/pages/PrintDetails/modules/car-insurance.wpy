@@ -1,0 +1,62 @@
+<style lang="stylus">
+.HcSanFangTeYue
+  width 60rpx!important
+</style>
+
+<template>
+  <block>
+    <view class="h5">
+      <text>车险</text>
+      <button @tap="goToPage('carInsurance')" wx:if="{{ WebViewConfig.is_show === 1 }}">办理</button>
+    </view>
+
+    <view class="card car_insurance" wx:if="{{ !isShowInsurance }}">
+      <view class="up_container">
+        <view class="list">
+          <view>未能获取到您爱车的相关车险信息，请自主办理。</view>
+          <view></view>
+          <view></view>
+        </view>
+      </view>
+    </view>
+
+    <view class="card car_insurance" wx:else>
+      <view class="up_container no-after">
+        <view class="list" wx:for="{{ carInsurance }}" wx:key="{{ $index }}">
+          <block wx:if="{{ item.insuranceCode=='JQXCCS' }}">
+            <view>{{ item.insuranceName }}</view>
+            <view></view>
+            <view></view>
+          </block>
+          <block wx:else>
+            <view>{{ item.insuranceName }}</view>
+            <view :class="{ HcSanFangTeYue: item.insuranceCode == 'HcSanFangTeYue' }">
+              <image wx:if="{{ item.isDeductible == 1 }}" src="../../../assets/car-insurance/free_icon.png">
+            </view>
+            <view>
+              <view wx:if="{{ item.insuranceCode == 'BoLi' }}" class="c_59">
+                {{ item.itemCode }}
+              </view>
+              <block wx:elif="{{ item.amount != '' && item.amount > 1000 }}">
+                <text>投保金额：</text>
+                <text>{{ item.amountF }}</text>
+              </block>
+            </view>
+          </block>
+        </view>
+      </view>
+    </view>
+
+  </block>
+</template>
+
+<script>
+import wepy from 'wepy'
+import mixin from '@/mixins/print-details.js'
+
+export default class PrintDetails__CarInsurance extends wepy.component {
+  mixins = [mixin]
+
+  props = ['WebViewConfig']
+}
+</script>

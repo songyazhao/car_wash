@@ -1,0 +1,110 @@
+<style lang="stylus" scoped>
+@import '../../styles/_variables'
+.x-checker-item
+  border-radius 4rpx
+  border 1rpx solid border-line-color
+  color lighten(deault-placeholder-color, 7%)
+  font-size 24rpx
+  padding 6rpx 22rpx
+  margin-bottom mg = 20rpx
+  white-space nowrap
+  &:not(:last-child)
+    margin-right mg
+.x-checker-item-active
+  border-color lighten(color-yellow, 1%)
+  color lighten(color-yellow, 1%)
+  background-color lighten(color-yellow, 90%)
+.x-checker-item-disabled
+  border-color lighten(border-line-color, 10%)
+  color lighten(deault-placeholder-color, 50%)
+  background-color lighten(deault-placeholder-color, 90%)
+</style>
+
+<template lang="pug">
+  view(
+    class='x-checker-item',
+    :class='{"x-checker-item-active": isActived, "x-checker-item-disabled": isDisabled}',
+    @tap='selectHandler({{ value }})') {{ value }}
+</template>
+
+<script>
+import wepy from 'wepy'
+
+export default class XCheckerItem extends wepy.component {
+  props = {
+    value: {
+      type: [String, Number, Object],
+      twoWay: true
+    },
+    selected: {
+      type: Boolean,
+      twoWay: true
+    },
+    disabled: Boolean
+  }
+
+  data = {
+    type: null,
+    max: null,
+    radioRequired: null
+  }
+
+  computed = {
+    isActived() {
+      return !!this.selected
+    },
+    isDisabled() {
+      return !!this.disabled
+    },
+    _value() {
+      return this.value
+    }
+  }
+
+  watch = {
+    disabled(val) {
+      if (this.type === 'radio') {
+
+      } else {
+
+      }
+    }
+  }
+
+  methods = {
+    selectHandler(...args) {
+      let { options } = this.$invoke('../XChecker', 'getProps')
+      options = options.map(v => v.value)
+      args[1] = options.indexOf(args[0])
+      if (this.type === 'radio') {
+        this.selectRadio(args)
+      } else {
+        this.selectCheckbox(args)
+      }
+    },
+    setSelected(value) {
+      this.selected = value
+    }
+  }
+
+  selectRadio(args) {
+    if (this.disabled) return false
+    this.$invoke('../XChecker', 'setValue', args)
+  }
+
+  selectCheckbox() {
+
+  }
+
+  onLoad() {
+    let { type, max, radioRequired } = this.$invoke('../XChecker', 'getProps')
+    this.type = type
+    this.max = max
+    this.radioRequired = radioRequired
+  }
+}
+
+// function isEqual (obj1, obj2) {
+//   return JSON.stringify(obj1) === JSON.stringify(obj2)
+// }
+</script>

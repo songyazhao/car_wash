@@ -1,0 +1,113 @@
+<style lang="stylus">
+@import '../../styles/_variables'
+.container
+  overflow hidden
+.below__box
+  padding-top 91rpx
+  display flex
+  flex-direction column
+  align-items center
+  min-height 730rpx
+  [class^='label-']
+    font-size h = 36rpx
+    line-height h
+  .label-1
+    color color-yellow
+  .label-2
+    margin-top 42rpx
+  .count-down
+    font-size h = 100rpx
+    line-height h
+    margin-top 24rpx
+    +view
+     color deault-placeholder-color
+     margin-top 10rpx
+  .operational-zone
+    width 73%
+    display flex
+    justify-content space-around
+    margin-top 15rpx
+    navigator
+      display flex
+      flex-direction column
+      align-items center
+      font-size 24rpx
+      color deault-placeholder-color
+      padding 25rpx
+      image
+        width w = 43rpx
+        height w
+        margin-bottom 6rpx
+</style>
+<template lang="pug">
+  view(class='container')
+    XHeader(class='above__box')
+    view(class='below__box')
+      view(class='label-1') 支付成功后设备将自动开启
+      view(class='label-2') No.{{ DeviceSerial }}设备已经解锁
+      view(class='count-down') {{ _countDown }}
+      view (剩余洗车时间)
+      view(class='operational-zone')
+        navigator(url="{{ '/pages/CarWash/FaultSubmit?orderId=' + orderId }}")
+          image(src='../../assets/Caryu-gzbx-icon@2x.png')
+          text 故障申报
+        //- navigator(url='/pages/CarWash/Index', open-type='redirectTo')
+        //-   image(src='../../assets/Caryu-jsxc-icon@2x.png')
+        //-   text 结束洗车
+</template>
+
+<script>
+import wepy from 'wepy'
+import XHeader from '@/components/x-header'
+import CommonMixin from '@/mixins/common-mixin'
+import { numberPatch } from '@/tools'
+
+export default class CarWash__Valuation extends wepy.page {
+  config = {
+    navigationBarTitleText: '驾遇快洗'
+  }
+  components = {
+    XHeader
+  }
+
+  mixins = [CommonMixin]
+
+  data = {
+    DeviceSerial: '', // 设备序列号
+    countDown: 0, // 剩余时间(秒)
+    orderId: '',
+    timer: null
+  }
+
+  computed = {
+    _countDown() {
+      let minute = this.countDown / 60
+      let second = this.countDown % 60
+      if (minute > 60)
+        minute = parseInt(minute % 60)
+      return numberPatch(minute, 2) + ':' + numberPatch(second, 2)
+    }
+  }
+
+  onUnload() {
+    clearInterval(this.timer)
+  }
+
+  onLoad(e) {
+    this.orderId = e.orderId || wepy.$instance.globalData.orderId
+    this.countDown = e.costTime || 900
+    this.DeviceSerial = e.DeviceSerial
+    this.timer = setInterval(() => {
+      this.countDown--
+      if (this.countDown <= 0) {
+        clearInterval(this.timer)
+        wepy.redirectTo({
+          url: '/pages/CarWash/Index'
+        })
+      } else {
+        this.$apply()
+      }
+    }, 1000)
+  }
+}
+</script>

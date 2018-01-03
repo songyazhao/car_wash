@@ -1,0 +1,96 @@
+<style lang="stylus">
+@import '../../../styles/_variables'
+@import '../../../styles/_util'
+.car_info
+  margin-top 30rpx
+  padding-bottom: 14rpx
+  background-color: transparent
+  position: relative
+  .monkey
+    margin: 0 auto
+    width: 302rpx
+    height: 182rpx
+    overflow: hidden
+    image
+      width 100%
+      height 242rpx
+  .car, .info
+    display: flex
+    flex-direction: column
+    justify-content: center
+  .car
+    color: color-coffee
+    border: none
+    margin: 0 auto
+    align-items: center
+    width: 334rpx
+    height: 116rpx
+    background: url(http://meili.caryu.com/Public/static/packaged-assets/Insurance/img/wire-f9411104.png) no-repeat
+    background-size: 100%
+    & view:first-child
+      font-size 38rpx
+    & view:last-child
+      margin-top: -4rpx
+      font-size: 20rpx
+      width: 208rpx
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+  .info
+    margin-left: 27%
+    color: color-coffee
+    height 160rpx
+    & view
+      solid-dot(color-coffee)
+      &:not(:first-child)
+        margin-top 12rpx
+</style>
+
+<template>
+  <view class="car_info">
+    <view class="monkey">
+      <image src="../../../assets/print-details/monkey.png" />
+    </view>
+    <view class="car">
+      <view>{{ _licenseNumber }}</view>
+      <view>{{ car_model }}</view>
+    </view>
+    <view class="info" wx:if="{{ carInfo.renewal }}">
+      <view>
+        交强险: {{ carInfo.renewal[0].desc }}
+      </view>
+      <view>
+        商业险: {{ carInfo.renewal[1].desc }}
+      </view>
+      <view wx:if="{{ carInfo.lastRenewal > 0 }}">
+        上次投保: {{ _lastInsuranceCompany }}
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import mixin from '@/mixins/print-details.js'
+
+export default class PrintDetails__CarInfo extends wepy.component {
+  mixins = [mixin]
+
+  data = {
+    lastRenewal: -1, // 上次投保公司代号 -1 表示不存在上次投保
+    lastInsuranceCompany: '' // 上次投保公司
+  }
+
+  computed = {
+    _licenseNumber() {
+      let sn = this.license_number
+      if (!sn)
+        return ''
+      return sn.substr(0, 1) + '·' + sn.substr(1, sn.length - 1)
+    },
+    _lastInsuranceCompany() {
+      return `${this.lastInsuranceCompany}保险公司`
+    }
+  }
+}
+</script>

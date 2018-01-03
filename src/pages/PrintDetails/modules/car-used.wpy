@@ -1,0 +1,66 @@
+<style lang="stylus">
+.card.car_used
+  .list view
+    flex: 1
+    display flex
+    align-items center
+    .strong
+      line-height 0
+</style>
+
+<template>
+  <block wx:if="{{ isShowUsed }}">
+    <view class="h5">
+      <text>二手车估值</text>
+      <button @tap="goToPage('sencondHand')" wx:if="{{ WebViewConfig.is_show === 1 }}">办理</button>
+    </view>
+    <view class="card car_used">
+      <view class="up_container no-after">
+        <view class="list">
+          <view>车辆型号：{{ car_model }}</view>
+        </view>
+      </view>
+      <view class="down_container">
+        <view class="list">
+          <view>
+            本车预计估值：
+            <text class="strong c_FB0">
+              {{ _min }}元-{{ _max }}元
+            </text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+</template>
+
+<script>
+import wepy from 'wepy'
+import mixin from '@/mixins/print-details.js'
+import { numberComma } from '@/tools'
+
+export default class PrintDetails__CarUsed extends wepy.component {
+  mixins = [mixin]
+
+  props = ['WebViewConfig']
+
+  computed = {
+    _min() {
+      if (this.isShowUsed && this.carUsed)
+        return this.f(numberComma(this.carUsed.min))
+      return ''
+    },
+    _max() {
+      if (this.isShowUsed && this.carUsed)
+        return this.f(numberComma(this.carUsed.max))
+      return ''
+    }
+  }
+
+  f(s) {
+    s = s.split(',')
+    s[s.length - 1] = '000'
+    return s.join(',')
+  }
+}
+</script>

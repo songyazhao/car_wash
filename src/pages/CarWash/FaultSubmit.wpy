@@ -1,0 +1,157 @@
+<style lang="stylus">
+@import '../../styles/_variables'
+.container
+  .above__box
+    padding 0 25rpx 20rpx
+    background-color white
+    .title
+      line-height 70rpx
+    // .tags
+    .issue
+      font-size 24rpx
+      min-height 180rpx
+      background-color lighten(body-background-color, 50%)
+      border 1rpx solid border-line-color
+      padding 13rpx 21rpx 40rpx
+      box-sizing border-box
+      position relative
+      .issue-size
+        font-size 18rpx
+        color lighten(deault-placeholder-color, 7%)
+        display block
+        position absolute
+        right 21rpx
+        bottom 11rpx
+      textarea
+        min-height 125rpx
+  .below__box
+    position fixed
+    left l = 50rpx
+    width calc(100% - 100rpx)
+    bottom l
+</style>
+<template lang="pug">
+  view(class='container')
+    view(class='above__box')
+      view(class='title') 故障申报
+      XChecker(class='tags', :active='issueValue', :options='issueTags', @change.user='tagsChangeHandler')
+        repeat(for='{{ issueTags }}', key='index', index='index', item='item')
+          XCheckerItem-0(:value='item.value', :selected.sync='item.selected', wx:if='{{ index === 0 }}')
+          XCheckerItem-1(:value='item.value', :selected.sync='item.selected', wx:if='{{ index === 1 }}')
+          XCheckerItem-2(:value='item.value', :selected.sync='item.selected', wx:if='{{ index === 2 }}')
+          XCheckerItem-3(:value='item.value', :selected.sync='item.selected', wx:if='{{ index === 3 }}')
+          XCheckerItem-4(:value='item.value', :selected.sync='item.selected', wx:if='{{ index === 4 }}')
+      view(class='issue')
+        text(class='issue-size') {{ issueSize }}/300
+        textarea(
+          value="{{ desc }}"
+          auto-height,
+          auto-focus,
+          maxlength='300',
+          placeholder='请您在次描述问题',
+          placeholder-style="color:#a8a8a8;font-size:24rpx;",
+          @input='inputChangeHandler')
+    view(class='below__box')
+      button(type='submit', @tap='submitHandler') 提交
+  Toast
+</template>
+
+<script>
+import wepy from 'wepy'
+import Toast from 'wepy-com-toast'
+import XHeader from '@/components/x-header'
+import XChecker from '@/components/x-checker/x-checker'
+import XCheckerItem from '@/components/x-checker/x-checker-item'
+import CommonMixin from '@/mixins/common-mixin'
+import { ajax } from '@/tools'
+
+let issueTags = ['无法使用', '没有电', '没有水', '水压不足', '其他']
+issueTags = issueTags.map(value => ({ value, selected: false }))
+
+export default class CarWash__FaultSubmit extends wepy.page {
+  config = {
+    navigationBarTitleText: '故障申报'
+  }
+
+  components = {
+    Toast,
+    XHeader,
+    XChecker,
+    'XCheckerItem-0': XCheckerItem,
+    'XCheckerItem-1': XCheckerItem,
+    'XCheckerItem-2': XCheckerItem,
+    'XCheckerItem-3': XCheckerItem,
+    'XCheckerItem-4': XCheckerItem
+  }
+
+  mixins = [CommonMixin]
+
+  data = {
+    issueSize: 0,
+    issueValue: '无法使用',
+    issueTags,
+    desc: '',
+    orderid: ''
+  }
+
+  computed = {
+    _desc() {
+      return this.issueValue === '其他' ? this.desc : this.issueValue
+    }
+  }
+
+  methods = {
+    tagsChangeHandler({ value, index }) {
+      this.issueTags.forEach((v, i) => {
+        this.$invoke(`XCheckerItem-${i}`, 'setSelected', v.value === value)
+      })
+    },
+    inputChangeHandler({ detail: { value, cursor } }) {
+      this.desc = value
+      this.issueSize = value.length
+    },
+    submitHandler() {
+      if (this.issueValue === '其他' && this.issueSize === 0) {
+        wepy.showModal({
+          title: '提示',
+          showCancel: false,
+          content: '请填写描述信息'
+        })
+      } else {
+        let params = {
+          openid: wepy.$instance.globalData.openId,
+          orderid: this.orderid,
+          desc: this._desc
+        }
+        ajax.post('/Xiaochengxu/WashCar/orderFeedBack', params)
+          .then(res => {
+            res = res.data
+            if (res.code === 0) {
+              wepy.$instance.delayExecute(600).then(r => {
+                wepy.hideLoading()
+                wepy.reLaunch({
+                  url: '/pages/CarWash/Index'
+                })
+              })
+              wepy.showToast({ title: '提交成功', icon: 'success' })
+            }
+          })
+      }
+    }
+  }
+
+  getSelectIndex() {
+    return this.issueTags.map(v => v.value).indexOf(this.issueValue)
+  }
+
+  onLoad(e) {
+    if (e.orderId) {
+      this.orderid = e.orderId
+    }
+    let i = this.getSelectIndex()
+    if (i > -1) {
+      this.$invoke(`XCheckerItem-${i}`, 'setSelected', true)
+    }
+  }
+}
+</script>

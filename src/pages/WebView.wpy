@@ -1,0 +1,45 @@
+<style lang="stylus">
+
+</style>
+
+<template lang="pug">
+  web-view(src='{{ WebViewURL }}', wx:if='{{ WebViewURL }}')
+</template>
+
+<script>
+import wepy from 'wepy'
+import CommonMixin from '@/mixins/common-mixin.js'
+
+export default class WebView extends wepy.page {
+  mixins = [CommonMixin]
+
+  data = {
+    WebViewURL: ''
+  }
+
+  onLoad(e) {
+    if (!wx.canIUse('web-view')) {
+      wepy.showModal({
+        title: '提示',
+        content: '当前微信版本过低，无法使用该功能，请升级到最新微信版本后重试。'
+      })
+      return false
+    }
+
+    if (e.title) {
+      wepy.setNavigationBarTitle({ title: e.title })
+    }
+
+    if (e.URL) {
+      this.WebViewURL = decodeURIComponent(e.URL)
+    } else {
+      wepy.getStorage({ key: 'WebViewURL' })
+        .then(res => {
+          this.WebViewURL = res.data
+          this.$apply()
+        })
+        .catch(err => console.info(err))
+    }
+  }
+}
+</script>

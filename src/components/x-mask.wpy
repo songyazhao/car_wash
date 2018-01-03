@@ -1,0 +1,34 @@
+<style lang="stylus">
+.x-mask
+  position fixed
+  left 0
+  right 0
+  top 0
+  bottom 0
+  z-index 1000
+  background-color rgba(0, 0, 0, .65)
+</style>
+
+<template lang="pug">
+  view(class='x-mask', wx:if='{{ show }}', @tap='tapHandler')
+</template>
+
+<script>
+import wepy from 'wepy'
+
+export default class XMask extends wepy.component {
+  props = {
+    show: {
+      type: Boolean,
+      defult: false,
+      twoWay: true
+    }
+  }
+
+  methods = {
+    tapHandler() {
+      this.$emit('tap')
+    }
+  }
+}
+</script>
